@@ -4,12 +4,12 @@ import (
 	"appengine"
 	"appengine/urlfetch"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/securecookie"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
-"fmt"
 )
 
 var hashKey = []byte("12345678901234567890123456789012")
