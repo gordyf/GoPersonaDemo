@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+"fmt"
 )
 
 var hashKey = []byte("12345678901234567890123456789012")
@@ -24,13 +25,22 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &cookie)
 }
 
+func getAudience(c appengine.Context) string {
+	if appengine.IsDevAppServer() {
+		return "http://localhost:8080/"
+	} else {
+		hostname := appengine.DefaultVersionHostname(c)
+		return fmt.Sprintf("http://%v", hostname)
+	}
+}
+
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	a := r.FormValue("assertion")
 
 	client := urlfetch.Client(c)
 	values := make(url.Values)
-	values.Set("audience", "http://localhost:8080/")
+	values.Set("audience", getAudience(c))
 	values.Set("assertion", a)
 	rv, err := client.PostForm("https://verifier.login.persona.org/verify", values)
 	defer rv.Body.Close()
@@ -69,6 +79,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.Errorf("%v", err)
 		}
+	} else {
+		c.Errorf("Failed login state: %v", v.Status)
 	}
 }
 
